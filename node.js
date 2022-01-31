@@ -1,15 +1,25 @@
-var events = require('events');
-var eventEmitter = new events.EventEmitter();
+var http = require('http');
+var formidable = require('formidable');
+var fs = require('fs');
 
-//Create an event handler:
-var myEventHandler = function () {
-  console.log('I hear a scream!');
-}
-
-//Assign the event handler to an event:
-eventEmitter.on('scream', myEventHandler);
-
-//Fire the 'scream' event:
-eventEmitter.emit('scream');
-eventEmitter.emit('scream');
-eventEmitter.emit('scream');
+http.createServer(function (req, res) {
+  if (req.url == '/fileupload') {
+    var form = new formidable.IncomingForm();
+    form.parse(req, function (err, fields, files) {
+      var oldpath = files.filetoupload.filepath;
+      var newpath = '/home/roomet/Downloads/' + files.filetoupload.originalFilename;
+      fs.rename(oldpath, newpath, function (err) {
+        if (err) throw err;
+        res.write('File uploaded and moved!');
+        res.end();
+      });
+ });
+  } else {
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    res.write('<form action="fileupload" method="post" enctype="multipart/form-data">');
+    res.write('<input type="file" name="filetoupload"><br>');
+    res.write('<input type="submit">');
+    res.write('</form>');
+    return res.end();
+  }
+}).listen(8080); 
